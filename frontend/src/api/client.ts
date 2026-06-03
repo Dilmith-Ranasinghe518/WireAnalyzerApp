@@ -43,6 +43,15 @@ export async function getJob(jobId: string): Promise<Job> {
   return await res.json();
 }
 
+export async function deleteJob(jobId: string): Promise<void> {
+  const res = await fetch(`/api/jobs/${jobId}`, {
+    method: "DELETE"
+  });
+  if (!res.ok) {
+    throw new Error("Failed to delete job");
+  }
+}
+
 export async function analyzeFile(file: File): Promise<Job> {
   const formData = new FormData();
   formData.append("file", file);

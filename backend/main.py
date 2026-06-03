@@ -69,6 +69,20 @@ async def get_job(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
+@app.delete("/api/jobs/{job_id}")
+async def delete_job(job_id: str):
+    # Remove from MongoDB
+    result = await jobs_collection.delete_one({"job_id": job_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Remove run directory if it exists
+    run_dir = os.path.join("runs", job_id)
+    if os.path.exists(run_dir):
+        shutil.rmtree(run_dir)
+        
+    return {"success": True}
+
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
 

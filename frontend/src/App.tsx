@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Plus, Clock, CheckCircle2, AlertCircle, RefreshCw, Layers, Sparkles, ShieldCheck } from "lucide-react";
-import { listJobs, getJob } from "./api/client";
+import { Plus, Clock, CheckCircle2, AlertCircle, RefreshCw, Layers, Sparkles, ShieldCheck, Trash2 } from "lucide-react";
+import { listJobs, getJob, deleteJob } from "./api/client";
 import type { JobHistoryItem } from "./api/client";
 import type { Job } from "./types/job";
 import { UploadZone } from "./components/UploadZone";
@@ -16,6 +16,7 @@ export default function App() {
   const [isRefreshingHistory, setIsRefreshingHistory] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [job, setJob] = useState<Job | null>(null);
+  const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
   const fetchHistory = async () => {
     setIsRefreshingHistory(true);
@@ -68,6 +69,21 @@ export default function App() {
   const handleStartNewAnalysis = () => {
     setActiveJobId(null);
     setActivePageIndex(0);
+  };
+
+  const confirmDelete = async () => {
+    if (!jobToDelete) return;
+    try {
+      await deleteJob(jobToDelete);
+      if (activeJobId === jobToDelete) {
+        handleStartNewAnalysis();
+      }
+      fetchHistory();
+    } catch (err) {
+      console.error("Failed to delete job", err);
+    } finally {
+      setJobToDelete(null);
+    }
   };
 
   return (
@@ -133,7 +149,7 @@ export default function App() {
                 <div
                   key={hItem.job_id}
                   onClick={() => handleSelectJob(hItem.job_id)}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 flex items-start gap-3 hover:translate-x-0.5 ${
+                  className={`group p-3.5 rounded-xl border cursor-pointer transition-all duration-200 flex items-center gap-3 hover:translate-x-0.5 ${
                     isActive
                       ? "bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.06)]"
                       : "bg-slate-950/20 border-slate-900 hover:border-slate-800 hover:bg-slate-950/40"
@@ -233,8 +249,17 @@ export default function App() {
                   <span className="text-xs text-indigo-400 font-mono">Analysis Successful</span>
                   <h2 className="text-2xl font-extrabold text-slate-100">{job.filename}</h2>
                 </div>
-                <div className="w-56">
-                  <DownloadButton job={job} />
+                <div className="flex items-center gap-3 w-72">
+                  <button 
+                    onClick={() => setJobToDelete(job.job_id)}
+                    className="flex items-center justify-center p-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors shrink-0"
+                    title="Delete Drawing"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                  <div className="flex-1">
+                    <DownloadButton job={job} />
+                  </div>
                 </div>
               </div>
 
@@ -261,6 +286,62 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {jobToDelete && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            top: 0, left: 0, right: 0, bottom: 0, 
+            zIndex: 99999, 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            backgroundColor: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(4px)"
+          }}
+        >
+          <div 
+            className="glass" 
+            style={{ 
+              maxWidth: "400px", 
+              width: "100%", 
+              padding: "24px", 
+              borderRadius: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "24px",
+              background: "#0f172a",
+              border: "1px solid #1e293b"
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "16px" }}>
+              <div style={{ height: "48px", width: "48px", borderRadius: "50%", background: "rgba(244, 63, 94, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AlertCircle style={{ height: "24px", width: "24px", color: "#f43f5e" }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#f8fafc", margin: 0 }}>Delete Drawing</h3>
+                <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: "8px", margin: 0 }}>Are you sure you want to delete this drawing? This action cannot be undone.</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button 
+                onClick={() => setJobToDelete(null)}
+                className="btn-secondary"
+                style={{ flex: 1, justifyContent: "center" }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="btn-primary"
+                style={{ flex: 1, justifyContent: "center", background: "#f43f5e", boxShadow: "0 4px 12px rgba(244, 63, 94, 0.2)" }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
