@@ -7,7 +7,14 @@ import shutil
 import subprocess
 import sys
 
-MONGO_URI = "mongodb+srv://admin:Cj1fYopndjY6fCmz@cluster0.z3zgd.mongodb.net/wireanalyzer?retryWrites=true&w=majority&appName=cluster0"
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
+MONGO_URI = os.environ.get("MONGO_URI")
+if not MONGO_URI:
+    raise ValueError("MONGO_URI is not set in .env")
+
 client = AsyncIOMotorClient(MONGO_URI)
 db = client.wireanalyzer
 jobs_collection = db.jobs
