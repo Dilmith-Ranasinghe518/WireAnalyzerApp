@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ZoomIn, ZoomOut, Maximize2, ChevronLeft, ChevronRight, Ruler, AlertTriangle, Eye } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, ChevronLeft, ChevronRight, Ruler, AlertTriangle, Eye } from "lucide-react";
 import type { Job } from "../types/job";
 
 interface ImagePreviewProps {
@@ -15,10 +15,21 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
 }) => {
   const [zoom, setZoom] = useState(1);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
   const handleZoomReset = () => setZoom(1);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen().catch(err => {
+        console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const handlePrevPage = () => {
     if (activePageIndex > 0) {
@@ -87,6 +98,14 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
               className="p-1.5 rounded hover:bg-slate-900 text-slate-400 hover:text-slate-200 transition-colors"
               title="Reset Zoom"
             >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+            <div className="h-4 w-[1px] bg-slate-800 mx-1" style={{ width: "1px", height: "16px", backgroundColor: "rgba(255,255,255,0.06)", margin: "0 4px" }} />
+            <button
+              onClick={toggleFullscreen}
+              className="p-1.5 rounded hover:bg-slate-900 text-slate-400 hover:text-slate-200 transition-colors"
+              title="Toggle Fullscreen"
+            >
               <Maximize2 className="h-4 w-4" />
             </button>
           </div>
@@ -118,6 +137,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
 
       {/* Main Drawing Canvas Container */}
       <div
+        ref={containerRef}
         className="w-full h-[600px] rounded-xl border border-slate-900 bg-slate-950/40 relative overflow-auto cursor-grab active:cursor-grabbing flex items-start justify-center p-8"
         style={{
           borderRadius: "12px",
