@@ -1,0 +1,283 @@
+import { useEffect, useState } from "react";
+import { Plus, Clock, CheckCircle2, AlertCircle, RefreshCw, Layers, Sparkles, ShieldCheck } from "lucide-react";
+import { listJobs, getJob } from "./api/client";
+import type { JobHistoryItem } from "./api/client";
+import type { Job } from "./types/job";
+import { UploadZone } from "./components/UploadZone";
+import { ResultsTable } from "./components/ResultsTable";
+import { ImagePreview } from "./components/ImagePreview";
+import { DownloadButton } from "./components/DownloadButton";
+import { analyzeFile } from "./api/client";
+
+export default function App() {
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [history, setHistory] = useState<JobHistoryItem[]>([]);
+  const [activePageIndex, setActivePageIndex] = useState<number>(0);
+  const [isRefreshingHistory, setIsRefreshingHistory] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [job, setJob] = useState<Job | null>(null);
+
+  const fetchHistory = async () => {
+    setIsRefreshingHistory(true);
+    try {
+      const data = await listJobs();
+      setHistory(data);
+    } catch (err) {
+      console.error("Failed to load jobs history list:", err);
+    } finally {
+      setIsRefreshingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  useEffect(() => {
+    if (activeJobId && !isAnalyzing) {
+       getJob(activeJobId).then(setJob).catch(console.error);
+    } else if (!activeJobId) {
+       setJob(null);
+    }
+  }, [activeJobId, isAnalyzing]);
+
+  const handleUploadSuccess = async (file: File) => {
+    setIsAnalyzing(true);
+    setActiveJobId("new");
+    setJob(null);
+    
+    try {
+      const completedJob = await analyzeFile(file);
+      setActiveJobId(completedJob.job_id);
+      setJob(completedJob);
+      setActivePageIndex(0);
+      fetchHistory(); 
+    } catch (err) {
+      console.error("Analysis Failed", err);
+      setActiveJobId("error");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleSelectJob = (jobId: string) => {
+    setActiveJobId(jobId);
+    setActivePageIndex(0);
+  };
+
+  const handleStartNewAnalysis = () => {
+    setActiveJobId(null);
+    setActivePageIndex(0);
+  };
+
+  return (
+    <div className="main-layout text-slate-100 font-sans" style={{ display: "grid", gridTemplateColumns: "320px 1fr", height: "100vh" }}>
+      
+      <aside
+        className="glass border-r border-slate-900 flex flex-col h-full overflow-hidden"
+        style={{
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--bg-sidebar)",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
+        }}
+      >
+        <div className="p-6 border-b border-slate-900 flex items-center justify-between" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-2.5" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Layers className="h-6 w-6 text-indigo-400 animate-spin-slow" />
+            <div>
+              <h1 className="text-sm font-bold text-slate-100 uppercase tracking-wider">WireAnalyzer</h1>
+              <span className="text-[10px] text-indigo-400/80 font-semibold tracking-wider font-mono">FastAPI + React</span>
+            </div>
+          </div>
+          <button
+            onClick={fetchHistory}
+            className="p-1.5 rounded hover:bg-slate-900 border border-slate-900 text-slate-400 hover:text-slate-200 transition-colors"
+            disabled={isRefreshingHistory}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingHistory ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+
+        <div className="p-4 border-b border-slate-900" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <button
+            onClick={handleStartNewAnalysis}
+            className="btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
+            style={{ width: "100%" }}
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Analysis</span>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase px-2">
+            <Clock className="h-3.5 w-3.5" />
+            <span>Recent Drawings</span>
+          </div>
+
+          {history.length > 0 ? (
+            history.map((hItem) => {
+              const isActive = hItem.job_id === activeJobId;
+              let statusIcon = <Clock className="h-4 w-4 text-amber-500 shrink-0" />;
+              
+              if (hItem.status === "complete") {
+                statusIcon = <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />;
+              } else if (hItem.status === "error") {
+                statusIcon = <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />;
+              }
+
+              return (
+                <div
+                  key={hItem.job_id}
+                  onClick={() => handleSelectJob(hItem.job_id)}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 flex items-start gap-3 hover:translate-x-0.5 ${
+                    isActive
+                      ? "bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.06)]"
+                      : "bg-slate-950/20 border-slate-900 hover:border-slate-800 hover:bg-slate-950/40"
+                  }`}
+                  style={{
+                    borderRadius: "12px",
+                    display: "flex",
+                    gap: "12px",
+                    borderWidth: "1px",
+                  }}
+                >
+                  {statusIcon}
+                  <div className="space-y-1 overflow-hidden flex-1" style={{ flex: 1 }}>
+                    <h4 className="text-xs font-semibold text-slate-200 truncate">{hItem.filename}</h4>
+                    <div className="flex items-center justify-between gap-2 text-[10px]" style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span className="text-slate-500 font-mono">
+                        {hItem.created_at ? new Date(hItem.created_at).toLocaleDateString() : ""}
+                      </span>
+                      <span className={`capitalize font-medium ${
+                        hItem.status === "complete"
+                          ? "text-emerald-500"
+                          : hItem.status === "error"
+                          ? "text-rose-500"
+                          : "text-indigo-400"
+                      }`}>
+                        {hItem.status.replace("_", " ")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-12 text-slate-600 text-xs font-mono italic">
+              No recent drawings uploaded yet.
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4 border-t border-slate-900 text-center text-[10px] text-slate-600 flex items-center justify-center gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <ShieldCheck className="h-3.5 w-3.5 text-slate-600" />
+          <span>Local sandbox environment secure</span>
+        </div>
+      </aside>
+
+      <main className="workspace-container" style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+        
+        <header className="dashboard-header" style={{ height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
+          <div>
+            <span className="text-xs font-mono text-slate-500">System Dashboard</span>
+            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+              <span>Schematic Blueprint Space</span>
+              <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+            </h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" style={{ height: "8px", width: "8px", borderRadius: "50%" }} />
+            <span className="text-xs text-slate-400 font-mono">Backend: http://localhost:8000</span>
+          </div>
+        </header>
+
+        <div className="workspace-content" style={{ flex: 1, overflowY: "auto", padding: "32px" }}>
+          {!activeJobId ? (
+            <div className="max-w-4xl mx-auto space-y-8 mt-12">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-extrabold text-slate-100 tracking-tight">Schematic Wire Length Calculator</h2>
+                <p className="text-sm text-slate-400 max-w-xl mx-auto">
+                  Automatically parse CAD wire segments from high-resolution schematic blueprint drawings. Extract scales using OCR and export professionalOpenpyxl spreadsheets.
+                </p>
+              </div>
+              {/* Wait, UploadZone takes a File directly now? Let's fix that by passing the new handler */}
+              <UploadZone onUploadSuccess={handleUploadSuccess as any} />
+            </div>
+          ) : isAnalyzing ? (
+            <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+              <LoaderIcon className="h-10 w-10 text-indigo-500 animate-spin" />
+              <div className="text-center space-y-2">
+                  <h3 className="text-lg font-bold text-slate-200">Analyzing Blueprint</h3>
+                  <p className="text-xs text-slate-500 font-mono tracking-wider uppercase">Running computer vision models. This may take a minute...</p>
+              </div>
+            </div>
+          ) : activeJobId === "error" ? (
+            <div className="max-w-2xl mx-auto mt-12 space-y-6">
+              <div className="p-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-center">
+                 <AlertCircle className="h-10 w-10 text-rose-500 mx-auto mb-4" />
+                 <h3 className="text-lg font-bold text-slate-200 mb-2">Analysis Failed</h3>
+                 <p className="text-sm text-slate-400 mb-6">The backend script returned an error or the format was unreadable.</p>
+                 <button onClick={handleStartNewAnalysis} className="btn-secondary px-6 inline-flex">
+                   Upload a different blueprint
+                 </button>
+              </div>
+            </div>
+          ) : job ? (
+            <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-900" style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <div>
+                  <span className="text-xs text-indigo-400 font-mono">Analysis Successful</span>
+                  <h2 className="text-2xl font-extrabold text-slate-100">{job.filename}</h2>
+                </div>
+                <div className="w-56">
+                  <DownloadButton job={job} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: "32px" }}>
+                
+                <div className="lg:col-span-5 space-y-6" style={{ gridColumn: "span 5 / span 5" }}>
+                  <ResultsTable job={job} activePageIndex={activePageIndex} />
+                </div>
+
+                <div className="lg:col-span-7" style={{ gridColumn: "span 7 / span 7" }}>
+                  <ImagePreview
+                    job={job}
+                    activePageIndex={activePageIndex}
+                    setActivePageIndex={setActivePageIndex}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[400px] gap-3">
+              <LoaderIcon className="h-8 w-8 text-indigo-500 animate-spin" />
+              <span className="text-xs text-slate-500 font-mono tracking-wider uppercase">Loading job workspace...</span>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+const LoaderIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);

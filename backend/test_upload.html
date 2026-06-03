@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wire Analyzer Dashboard</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+button{
+    padding:10px 20px;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:left;
+}
+
+th{
+    background:#efefef;
+}
+
+.total-box{
+    font-size:20px;
+    font-weight:bold;
+    padding:10px;
+}
+
+pre{
+    background:#111;
+    color:#00ff00;
+    padding:15px;
+    overflow:auto;
+    max-height:400px;
+}
+
+.status{
+    margin-top:10px;
+    font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Wire Analyzer Upload</h2>
+
+```
+<input
+    type="file"
+    id="fileInput"
+    accept=".png,.jpg,.jpeg"
+>
+
+<button onclick="uploadImage()">
+    Analyze
+</button>
+
+<div class="status" id="status"></div>
+```
+
+</div>
+
+<div class="card">
+    <h2>Total Wire Length</h2>
+
+```
+<div id="totalFeet" class="total-box">
+    Total Feet: -
+</div>
+
+<div id="totalMeters" class="total-box">
+    Total Meters: -
+</div>
+```
+
+</div>
+
+<div class="card">
+    <h2>Color Summary</h2>
+
+```
+<table>
+    <thead>
+    <tr>
+        <th>Rank</th>
+        <th>Color</th>
+        <th>Total Feet</th>
+        <th>Total Meters</th>
+    </tr>
+    </thead>
+
+    <tbody id="summaryTable"></tbody>
+</table>
+```
+
+</div>
+
+<div class="card">
+    <h2>Wire Segments Sorted By Length</h2>
+
+```
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Color</th>
+        <th>Feet</th>
+        <th>Meters</th>
+    </tr>
+    </thead>
+
+    <tbody id="segmentsTable"></tbody>
+</table>
+```
+
+</div>
+
+<div class="card">
+    <h2>Raw API Response</h2>
+
+```
+<pre id="rawOutput"></pre>
+```
+
+</div>
+
+<script>
+
+async function uploadImage(){
+
+    const fileInput = document.getElementById("fileInput");
+    const status = document.getElementById("status");
+
+    if(fileInput.files.length === 0){
+        alert("Please select an image");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    status.innerHTML = "Uploading and analyzing...";
+
+    try{
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/analyze",
+            {
+                method:"POST",
+                body:formData
+            }
+        );
+
+        const data = await response.json();
+
+        document.getElementById("rawOutput").textContent =
+            JSON.stringify(data,null,2);
+
+        const parsed =
+            parseAnalyzerOutput(data.output);
+
+        renderResults(parsed);
+
+        status.innerHTML =
+            "Analysis completed successfully";
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        status.innerHTML =
+            "Error during analysis";
+    }
+}
+
+function parseAnalyzerOutput(text){
+
+    const result = {
+        summary:[],
+        segments:[],
+        grand_total:{}
+    };
+
+    const lines = text.split("\n");
+
+    let currentColor = null;
+
+    lines.forEach(line => {
+
+        const colorMatch =
+            line.match(/^\[(.*?)\]/);
+
+        if(colorMatch){
+
+            currentColor =
+                colorMatch[1];
+
+            return;
+        }
+
+        const segmentMatch =
+            line.match(
+                /^([A-Z]\d+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/
+            );
+
+        if(segmentMatch && currentColor){
+
+            result.segments.push({
+
+                id:
+                    segmentMatch[1],
+
+                color:
+                    currentColor,
+
+                feet:
+                    parseFloat(
+                        segmentMatch[3]
+                    ),
+
+                meters:
+                    parseFloat(
+                        segmentMatch[4]
+                    )
+            });
+
+            return;
+        }
+
+        const subtotalMatch =
+            line.match(
+                /^sub\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/
+            );
+
+        if(subtotalMatch && currentColor){
+
+            result.summary.push({
+
+                color:
+                    currentColor,
+
+                feet:
+                    parseFloat(
+                        subtotalMatch[2]
+                    ),
+
+                meters:
+                    parseFloat(
+                        subtotalMatch[3]
+                    )
+            });
+
+            return;
+        }
+
+        const totalMatch =
+            line.match(
+                /Real length\s*:\s*([\d.]+)\s*ft\s*\|\s*([\d.]+)\s*m/
+            );
+
+        if(totalMatch){
+
+            result.grand_total = {
+
+                feet:
+                    parseFloat(
+                        totalMatch[1]
+                    ),
+
+                meters:
+                    parseFloat(
+                        totalMatch[2]
+                    )
+            };
+        }
+
+    });
+
+    return result;
+}
+
+function renderResults(data){
+
+    document.getElementById("summaryTable")
+        .innerHTML = "";
+
+    document.getElementById("segmentsTable")
+        .innerHTML = "";
+
+    document.getElementById("totalFeet")
+        .innerHTML =
+        `Total Feet: ${data.grand_total.feet?.toFixed(3) ?? "-"}`;
+
+    document.getElementById("totalMeters")
+        .innerHTML =
+        `Total Meters: ${data.grand_total.meters?.toFixed(3) ?? "-"}`;
+
+    const sortedSummary =
+        [...data.summary]
+        .sort((a,b)=>b.feet-a.feet);
+
+    sortedSummary.forEach((item,index)=>{
+
+        document
+            .getElementById("summaryTable")
+            .innerHTML +=
+            `
+            <tr>
+                <td>${index+1}</td>
+                <td>${item.color}</td>
+                <td>${item.feet.toFixed(3)}</td>
+                <td>${item.meters.toFixed(3)}</td>
+            </tr>
+            `;
+    });
+
+    const sortedSegments =
+        [...data.segments]
+        .sort((a,b)=>b.feet-a.feet);
+
+    sortedSegments.forEach(item=>{
+
+        document
+            .getElementById("segmentsTable")
+            .innerHTML +=
+            `
+            <tr>
+                <td>${item.id}</td>
+                <td>${item.color}</td>
+                <td>${item.feet.toFixed(3)}</td>
+                <td>${item.meters.toFixed(3)}</td>
+            </tr>
+            `;
+    });
+}
+</script>
+
+</body>
+</html>

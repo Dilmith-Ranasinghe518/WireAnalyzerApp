@@ -1,0 +1,25 @@
+# Local uploads directory
+uploads/
+runs/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/**/__pycache__/
+backend/**/*.pyc
+
+# Node / Frontend build files
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
