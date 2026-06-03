@@ -91,6 +91,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ job, activePageIndex
               {/* Expandable Segments Table */}
               {isExpanded && (
                 <div className="bg-slate-950/80 border-t p-3" style={{ borderTopColor: 'rgba(255,255,255,0.04)' }}>
+                  
                   <div className="flex items-center justify-between mb-2 px-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Page {activePageIndex + 1} Segments</span>
                     <span className="text-[10px] text-slate-500 font-mono">Count: {segments.length}</span>
@@ -153,6 +154,41 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ job, activePageIndex
             <span className="text-xs text-slate-500 uppercase tracking-wider mb-1">Meters</span>
             <span className="text-xl font-bold text-emerald-400">{total_length_meters.toFixed(3)}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Full-size Mask Images Section */}
+      <div className="mt-8 space-y-8">
+        <div className="flex items-center gap-3">
+          <Layers className="h-5 w-5 text-indigo-400" />
+          <h3 className="text-lg font-bold text-slate-100">Color Detection Masks</h3>
+        </div>
+        
+        <div className="space-y-8">
+          {Object.entries(by_color).map(([colorName, data]) => {
+            if (!data.total_pixels) return null; // Skip if no wires detected for this color
+            return (
+              <div key={colorName} className="glass rounded-xl border border-slate-800 overflow-hidden">
+                <div className="px-4 py-3 bg-slate-900/80 border-b border-slate-800 flex items-center gap-3">
+                  <span
+                    className="h-3 w-3 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: colorMap[colorName] || "rgb(148, 163, 184)",
+                      boxShadow: `0 0 10px ${colorMap[colorName] || "rgb(148, 163, 184)"}80`,
+                    }}
+                  />
+                  <h4 className="font-bold text-slate-200 uppercase tracking-wider">{colorName.replace("_", " ")} Mask</h4>
+                </div>
+                <div className="bg-black p-4 overflow-auto">
+                  <img 
+                    src={`/runs/${job.job_id}/${job.job_id}_mask_${colorName}.png`}
+                    alt={`${colorName} mask`}
+                    className="w-full h-auto rounded"
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
