@@ -224,12 +224,8 @@ export default function App() {
               <UploadZone onUploadSuccess={handleUploadSuccess as any} />
             </div>
           ) : isAnalyzing ? (
-            <div className="flex flex-col items-center justify-center h-[400px] gap-4">
-              <LoaderIcon className="h-10 w-10 text-indigo-500 animate-spin" />
-              <div className="text-center space-y-2">
-                  <h3 className="text-lg font-bold text-slate-200">Analyzing Blueprint</h3>
-                  <p className="text-xs text-slate-500 font-mono tracking-wider uppercase">Running computer vision models. This may take a minute...</p>
-              </div>
+            <div className="flex flex-col items-center justify-center h-[500px]">
+              <ScanningLoader />
             </div>
           ) : activeJobId === "error" ? (
             <div className="max-w-2xl mx-auto mt-12 space-y-6">
@@ -361,4 +357,63 @@ const LoaderIcon = ({ className }: { className?: string }) => (
   >
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
+);
+
+const ScanningLoader = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
+    <div style={{ position: 'relative', width: '220px', height: '220px', border: '1px solid rgba(99, 102, 241, 0.4)', borderRadius: '16px', overflow: 'hidden', background: 'rgba(15, 23, 42, 0.6)', boxShadow: '0 0 30px rgba(99, 102, 241, 0.1)' }}>
+      {/* Background Grid */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(99, 102, 241, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.15) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: 'center center' }}></div>
+      
+      {/* Scanning Line */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, height: '3px',
+        background: '#818cf8',
+        boxShadow: '0 0 15px #818cf8, 0 0 30px #818cf8',
+        animation: 'scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate'
+      }} />
+
+      {/* Center pulsating Icon */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Layers style={{ width: '64px', height: '64px', color: '#818cf8', animation: 'pulse-glow-icon 2s infinite ease-in-out' }} />
+      </div>
+
+      <style>
+        {`
+          @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(217px); }
+          }
+          @keyframes pulse-glow-icon {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(129, 140, 248, 0.4)); transform: scale(1); opacity: 0.8; }
+            50% { filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.9)); transform: scale(1.1); opacity: 1; }
+          }
+          @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+          }
+          .animated-dots::after {
+            content: ".";
+            animation: dots 1.5s infinite steps(1);
+          }
+        `}
+      </style>
+    </div>
+    
+    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#f8fafc', margin: 0, letterSpacing: '0.025em' }}>
+        Analyzing Blueprint<span className="animated-dots"></span>
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <p style={{ fontSize: '13px', color: '#cbd5e1', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+          Processing CAD Segments & Extracting Scales
+        </p>
+        <p style={{ fontSize: '11px', color: '#818cf8', fontFamily: 'monospace', textTransform: 'uppercase', margin: 0, opacity: 0.8 }}>
+          This may take 1-2 minutes depending on file complexity
+        </p>
+      </div>
+    </div>
+  </div>
 );
