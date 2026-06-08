@@ -10,7 +10,8 @@ import {
   Box, 
   ToggleRight, 
   Plug,
-  Cpu
+  Cpu,
+  Server
 } from "lucide-react";
 
 const componentsData = {
@@ -19,24 +20,28 @@ const componentsData = {
   'GFI': 14, 
   'Ex_Vent': 3, 
   'CHWater_Supply': 1, 
+  'CWater_Supply': 1,
   'HBB': 2, 
   'Doorbell': 1, 
   'JB': 3, 
   'SSwitch': 17, 
-  '110V_Outlet': 21
+  '110V_Outlet': 21,
+  'Panelboard': 2
 };
 
 const componentMeta: Record<string, { label: string; icon: React.ComponentType<any>; color: string; barColor: string }> = {
-  'LED_Disc_Light': { label: 'LED Disc Light', icon: Lightbulb, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', barColor: 'bg-amber-500' },
-  'SM_Detector': { label: 'SM Detector', icon: Radio, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20', barColor: 'bg-rose-500' },
-  'GFI': { label: 'GFI Outlet', icon: Zap, color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', barColor: 'bg-yellow-500' },
+  'LED_Disc_Light': { label: 'Surface Mounted LED Disc Light', icon: Lightbulb, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', barColor: 'bg-amber-500' },
+  'SM_Detector': { label: 'Smoke Detector', icon: Radio, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20', barColor: 'bg-rose-500' },
+  'GFI': { label: 'Ground Fault Interruptor', icon: Zap, color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', barColor: 'bg-yellow-500' },
   'Ex_Vent': { label: 'Exhaust Vent', icon: Wind, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20', barColor: 'bg-sky-500' },
-  'CHWater_Supply': { label: 'CHWater Supply', icon: Droplets, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20', barColor: 'bg-blue-500' },
-  'HBB': { label: 'HBB Heater', icon: Flame, color: 'text-orange-400 bg-orange-500/10 border-orange-500/20', barColor: 'bg-orange-500' },
+  'CHWater_Supply': { label: 'Cold/Hot Water Supply', icon: Droplets, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20', barColor: 'bg-blue-500' },
+  'CWater_Supply': { label: 'Cold Water Supply', icon: Droplets, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', barColor: 'bg-cyan-500' },
+  'HBB': { label: 'Hose Bib', icon: Flame, color: 'text-orange-400 bg-orange-500/10 border-orange-500/20', barColor: 'bg-orange-500' },
   'Doorbell': { label: 'Doorbell', icon: Bell, color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20', barColor: 'bg-yellow-500' },
   'JB': { label: 'Junction Box', icon: Box, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20', barColor: 'bg-slate-500' },
-  'SSwitch': { label: 'Single Switch', icon: ToggleRight, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', barColor: 'bg-indigo-500' },
+  'SSwitch': { label: 'Standard Switch', icon: ToggleRight, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', barColor: 'bg-indigo-500' },
   '110V_Outlet': { label: '110V Outlet', icon: Plug, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', barColor: 'bg-emerald-500' },
+  'Panelboard': { label: 'Panelboard', icon: Server, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', barColor: 'bg-purple-500' },
 };
 
 export const ElectricalComponentsTable: React.FC = () => {
