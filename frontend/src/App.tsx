@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Clock, CheckCircle2, AlertCircle, RefreshCw, Layers, Sparkles, ShieldCheck, Trash2 } from "lucide-react";
+import { Plus, Clock, CheckCircle2, AlertCircle, RefreshCw, Layers, Sparkles, ShieldCheck, Trash2, Ruler } from "lucide-react";
 import { listJobs, getJob, deleteJob } from "./api/client";
 import type { JobHistoryItem } from "./api/client";
 import type { Job } from "./types/job";
@@ -271,6 +271,29 @@ export default function App() {
                     activePageIndex={activePageIndex}
                     setActivePageIndex={setActivePageIndex}
                   />
+
+                  {/* Grand Total Card */}
+                  <div className="glass rounded-xl p-5 border flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6" style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'linear-gradient(145deg, rgba(30,41,59,0.7) 0%, rgba(15,23,42,0.7) 100%)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                        <Ruler className="h-5 w-5 text-indigo-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Grand Total</h4>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">{job.summary?.total_pixels ? job.summary.total_pixels.toFixed(1) : "0.0"} px</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-6 md:gap-8 font-mono">
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-slate-500 uppercase tracking-wider mb-1">Feet</span>
+                        <span className="text-xl font-bold text-indigo-400">{job.summary?.total_length_feet.toFixed(3) || "0.000"}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-slate-500 uppercase tracking-wider mb-1">Meters</span>
+                        <span className="text-xl font-bold text-emerald-400">{job.summary?.total_length_meters.toFixed(3) || "0.000"}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
