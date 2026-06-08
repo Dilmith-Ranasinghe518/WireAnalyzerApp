@@ -49,29 +49,6 @@ export const ElectricalComponentsTable: React.FC = () => {
         <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wide">Electrical Components</h3>
       </div>
 
-      {/* Compact stats row */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="glass rounded-xl p-4 border flex items-center gap-3" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(15,23,42,0.4)' }}>
-          <div className="h-9 w-9 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 shrink-0">
-            <Cpu className="h-4.5 w-4.5" />
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">Categories</span>
-            <span className="text-base font-bold text-indigo-400 font-mono">{Object.keys(componentsData).length}</span>
-          </div>
-        </div>
-        
-        <div className="glass rounded-xl p-4 border flex items-center gap-3" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(15,23,42,0.4)' }}>
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 shrink-0">
-            <Cpu className="h-4.5 w-4.5" />
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">Total Count</span>
-            <span className="text-base font-bold text-emerald-400 font-mono">{totalCount}</span>
-          </div>
-        </div>
-      </div>
-
       {/* Grid of Compact Cards */}
       <div className="gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         {Object.entries(componentsData)
