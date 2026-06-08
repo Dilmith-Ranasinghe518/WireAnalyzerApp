@@ -270,6 +270,7 @@ export default function App() {
                     job={job}
                     activePageIndex={activePageIndex}
                     setActivePageIndex={setActivePageIndex}
+                    hideScale={true}
                   />
                 </div>
               </div>

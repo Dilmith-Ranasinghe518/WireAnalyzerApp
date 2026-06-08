@@ -6,12 +6,14 @@ interface ImagePreviewProps {
   job: Job;
   activePageIndex: number;
   setActivePageIndex: (index: number) => void;
+  hideScale?: boolean;
 }
 
 export const ImagePreview: React.FC<ImagePreviewProps> = ({
   job,
   activePageIndex,
   setActivePageIndex,
+  hideScale = false,
 }) => {
   const [zoom, setZoom] = useState(1);
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -50,25 +52,35 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   return (
     <div className="w-full space-y-4 animate-fade-in">
       {/* Top Controller Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl glass" style={{ borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div 
+        className="flex flex-wrap items-center gap-4 p-4 rounded-xl glass" 
+        style={{ 
+          borderRadius: "12px", 
+          display: "flex", 
+          justifyContent: hideScale ? "center" : "space-between", 
+          alignItems: "center" 
+        }}
+      >
         
         {/* Scale Badge */}
-        <div className="flex items-center gap-3">
-          <Ruler className="h-5 w-5 text-indigo-400" />
-          {job.scale_fallback ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold animate-pulse-glow" style={{ borderRadius: "8px" }}>
-              <AlertTriangle className="h-3.5 w-3.5" />
-              <span>Fallback Scale Used: 1/8"=1'-0"</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold" style={{ borderRadius: "8px" }}>
-              <Ruler className="h-3.5 w-3.5" />
-              <span>
-                Detected Scale: {job.scale?.raw || "1/8\"=1'-0\""} ({job.scale?.pixels_per_foot.toFixed(1)} px/ft)
-              </span>
-            </div>
-          )}
-        </div>
+        {!hideScale && (
+          <div className="flex items-center gap-3">
+            <Ruler className="h-5 w-5 text-indigo-400" />
+            {job.scale_fallback ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold animate-pulse-glow" style={{ borderRadius: "8px" }}>
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Fallback Scale Used: 1/8"=1'-0"</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold" style={{ borderRadius: "8px" }}>
+                <Ruler className="h-3.5 w-3.5" />
+                <span>
+                  Detected Scale: {job.scale?.raw || "1/8\"=1'-0\""} ({job.scale?.pixels_per_foot.toFixed(1)} px/ft)
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Zoom & Page Actions */}
         <div className="flex items-center gap-4" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
