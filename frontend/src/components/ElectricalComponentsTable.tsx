@@ -89,32 +89,17 @@ export const ElectricalComponentsTable: React.FC = () => {
             return (
               <div 
                 key={name} 
-                className="glass p-3.5 rounded-xl border flex flex-col justify-between gap-3.5 transition-all duration-200 hover:scale-[1.02] hover:bg-slate-800/30" 
+                className="glass p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all duration-200 hover:scale-[1.02] hover:bg-slate-800/30" 
                 style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(30,41,59,0.2)' }}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`h-8.5 w-8.5 rounded-lg flex items-center justify-center border shrink-0 ${meta.color}`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-200 truncate">{meta.label}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center border shrink-0 ${meta.color}`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <div className="shrink-0 font-mono">
-                    <span className="text-base font-extrabold text-slate-100">{count}</span>
-                  </div>
+                  <span className="text-xs font-bold text-slate-200 truncate">{meta.label}</span>
                 </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[9px] font-mono text-slate-500 font-medium">
-                    <span>Density</span>
-                    <span>{percentage.toFixed(1)}%</span>
-                  </div>
-                  <div className="w-full h-1 bg-slate-950/80 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ease-out ${meta.barColor}`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
+                <div className="shrink-0 font-mono pr-1">
+                  <span className="text-base font-extrabold text-slate-100">{count}</span>
                 </div>
               </div>
             );
